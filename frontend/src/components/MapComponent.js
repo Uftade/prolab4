@@ -112,6 +112,7 @@ const MapComponent = () => {
             </MapContainer>
         </div>
     );
+
 };
 
 export default MapComponent;

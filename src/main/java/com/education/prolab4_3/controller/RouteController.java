@@ -37,39 +37,46 @@ public class RouteController {
             default -> yolcu = new Yetiskin();
         }
 
+        // Eğer ödeme yöntemi KentKart ise, taksi için Nakit olarak değiştirelim
+        if (!(yolcu.getOdemeYontemi() instanceof Nakit || yolcu.getOdemeYontemi() instanceof KrediKart)) {
+            System.out.println("⚠ Taksi için ödeme yöntemi geçerli değil, Nakit olarak değiştirildi.");
+            yolcu.setOdemeYontemi(new Nakit());
+        }
+
         // En yakın durakları bul
         Stop startStop = findNearestStop(graph, request.getStart().getLat(), request.getStart().getLon());
         Stop endStop = findNearestStop(graph, request.getEnd().getLat(), request.getEnd().getLon());
 
-        // Farklı kriterlere göre rotalar hesapla
+        // Rotaları hesapla
         List<String> enUcuz = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new CostWeightFunction(), yolcu);
         List<String> enKisa = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new TimeWeightFunction(), yolcu);
         List<String> enAzAktarma = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new TransferWeightFunction(), yolcu);
 
-        // Eğer hiçbir rota bulunamazsa taksi alternatifi ekle
+        // Taksi Alternatifini Ekle
+        double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(),
+                request.getEnd().getLat(), request.getEnd().getLon());
+
+        Taksi taksi = new Taksi();
+        double taksiUcreti = taksi.fiyatHesapla(taksi.getOpeningFee() + (taksi.getCostPerKm() * mesafe), yolcu);
+        int taksiSuresi = (int) (mesafe * 2);
+
+        RouteDetail taksiAlternatif = new RouteDetail(
+                "En Hızlı Rota (Taksi)",
+                List.of("Başlangıç", "Taksi ile Varış"),
+                taksiUcreti,
+                taksiSuresi,
+                0
+        );
+
+        // Eğer hiçbir toplu taşıma rotası bulunamazsa, sadece taksi rotasını döndür
         if (enUcuz.isEmpty() || enKisa.isEmpty() || enAzAktarma.isEmpty()) {
-            enUcuz = enKisa = enAzAktarma = List.of("Taksi ile ulaşım");
-
-            // Mesafeyi hesapla
-            double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(),
-                    request.getEnd().getLat(), request.getEnd().getLon());
-
-            // Taksi nesnesini oluştur
-            Taksi taksi = new Taksi();
-            double taksiUcreti = taksi.fiyatHesapla(taksi.getOpeningFee() + (taksi.getCostPerKm() * mesafe), yolcu);
-            int taksiSuresi = (int) (mesafe * 2); // 1 km = 2 dakika örneği
-
-            return new RouteResponse(
-                    List.of(
-                            new RouteDetail("Taksi Alternatifi", List.of("Başlangıç", "Taksi ile Varış"),
-                                    taksiUcreti, taksiSuresi, 0)
-                    )
-            );
+            return new RouteResponse(List.of(taksiAlternatif));
         }
 
-        // Rotaların detaylarını hesapla
+        // Alternatif rotaları döndür
         return new RouteResponse(
                 List.of(
+                        taksiAlternatif,
                         new RouteDetail("En Ucuz Rota", enUcuz,
                                 calculateTotalCost(graph, enUcuz, yolcu),
                                 calculateTotalTime(graph, enUcuz),
@@ -87,6 +94,7 @@ public class RouteController {
                 )
         );
     }
+
 
     private Stop findNearestStop(Graph graph, double lat, double lon) {
         Stop nearest = null;

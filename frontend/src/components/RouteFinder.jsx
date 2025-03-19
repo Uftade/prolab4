@@ -10,6 +10,7 @@ export default function RouteFinder() {
     const [endLon, setEndLon] = useState("");
     const [routes, setRoutes] = useState([]);
     const [isSelectingStart, setIsSelectingStart] = useState(true);
+    const [selectedRouteCoords, setSelectedRouteCoords] = useState([]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -80,22 +81,36 @@ export default function RouteFinder() {
                 start={{ lat: startLat, lon: startLon }}
                 end={{ lat: endLat, lon: endLon }}
                 onSelectLocation={onMapClick}
+                routeCoordinates={selectedRouteCoords}
             />
 
             <h3>Alternatif Rotalar</h3>
             {routes.length > 0 ? (
                 <ul>
                     {routes.map((route, index) => (
-                        <li key={index}>
+                        <li
+                            key={index}
+                            style={{cursor: "pointer"}}
+                            onClick={() => {
+                                if (route.coordinates && route.coordinates.length > 0) {
+                                    const coords = route.coordinates.map(coord => [parseFloat(coord.lat), parseFloat(coord.lon)]);
+                                    setSelectedRouteCoords(coords);
+                                    console.log("Koordinatlar:", coords);
+                                } else {
+                                    setSelectedRouteCoords([]);
+                                    console.log("Koordinatlar boş!");
+                                }
+                            }}
+                        >
                             <strong>{route.type === "Taksi" ? "🚖 Taksi" : route.type}</strong>: {route.path.join(" → ")} |
                             Ücret: {route.fare.toFixed(2)} TL | Süre: {route.duration} dk | Aktarma: {route.transfers}
                         </li>
                     ))}
                 </ul>
+
             ) : (
                 <p>Henüz bir rota hesaplanmadı.</p>
             )}
-
         </div>
     );
 }

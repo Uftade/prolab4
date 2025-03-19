@@ -6,4 +6,9 @@ public class Location {
 
     public double getLat() { return lat; }
     public double getLon() { return lon; }
+    public Location(double lat, double lon) {
+        this.lat = lat;
+        this.lon = lon;
+    }
+
 }

@@ -72,14 +72,14 @@ const MapComponent = ({
                 <Polyline positions={[
                     [start.lat, start.lon],
                     [nearestStartStop.lat, nearestStartStop.lon]
-                ]} pathOptions={{color: 'orange', dashArray: '5, 10'}} />
+                ]} pathOptions={{color: 'black', dashArray: '5, 10'}} />
             )}
 
             {end && nearestEndStop && (
                 <Polyline positions={[
                     [end.lat, end.lon],
                     [nearestEndStop.lat, nearestEndStop.lon]
-                ]} pathOptions={{color: 'green', dashArray: '5, 10'}} />
+                ]} pathOptions={{color: 'black', dashArray: '5, 10'}} />
             )}
 
 

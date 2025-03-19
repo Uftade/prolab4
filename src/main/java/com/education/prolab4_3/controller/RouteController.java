@@ -33,7 +33,6 @@ public class RouteController {
 
     @PostMapping
     public RouteResponse getRoute(@RequestBody RouteRequest request) {
-        // Yolcu tipini belirle
         Yolcu yolcu;
         switch (request.getPassengerType().toLowerCase()) {
             case "ogrenci" -> yolcu = new Ogrenci();
@@ -41,24 +40,29 @@ public class RouteController {
             default -> yolcu = new Yetiskin();
         }
 
-        // Eğer ödeme yöntemi KentKart ise, taksi için Nakit olarak değiştirelim
         if (!(yolcu.getOdemeYontemi() instanceof Nakit || yolcu.getOdemeYontemi() instanceof KrediKart)) {
-            System.out.println("⚠ Taksi için ödeme yöntemi geçerli değil, Nakit olarak değiştirildi.");
             yolcu.setOdemeYontemi(new Nakit());
         }
 
-        // En yakın durakları bul
         Stop startStop = findNearestStop(graph, request.getStart().getLat(), request.getStart().getLon());
         Stop endStop = findNearestStop(graph, request.getEnd().getLat(), request.getEnd().getLon());
 
-        // Rotaları hesapla
+        double startDistance = haversineDistance(request.getStart().getLat(), request.getStart().getLon(), startStop.getLat(), startStop.getLon());
+        double endDistance = haversineDistance(request.getEnd().getLat(), request.getEnd().getLon(), endStop.getLat(), endStop.getLon());
+
+        String startMessage = startDistance > 3.0 ?
+                "Başlangıç noktanız 3 km'den fazla uzak, taksi kullanmanız gerekebilir. Tahmini taksi ücreti: " + String.format("%.2f", (10 + 5 * startDistance)) + " TL"
+                : "Başlangıç noktanız 3 km'den az, yürüyebilirsiniz.";
+
+        String endMessage = endDistance > 3.0 ?
+                "Hedef noktanız 3 km'den fazla uzak, taksi kullanmanız gerekebilir. Tahmini taksi ücreti: " + String.format("%.2f", (10 + 5 * endDistance)) + " TL"
+                : "Hedef noktanız 3 km'den az, yürüyebilirsiniz.";
+
         List<String> enUcuz = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new CostWeightFunction(), yolcu);
         List<String> enKisa = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new TimeWeightFunction(), yolcu);
         List<String> enAzAktarma = Dijkstra.findPath(graph, startStop.getId(), endStop.getId(), new TransferWeightFunction(), yolcu);
 
-        // Taksi Alternatifini Ekle
-        double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(),
-                request.getEnd().getLat(), request.getEnd().getLon());
+        double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(), request.getEnd().getLat(), request.getEnd().getLon());
 
         Taksi taksi = new Taksi();
         double taksiUcreti = taksi.fiyatHesapla(taksi.getOpeningFee() + (taksi.getCostPerKm() * mesafe), yolcu);
@@ -68,46 +72,30 @@ public class RouteController {
                 "En Hızlı Rota (Taksi)",
                 List.of("Başlangıç", "Taksi ile Varış"),
                 List.of(
-                        new Location(request.getStart().getLat(), request.getStart().getLon()), // Başlangıç noktası
-                        new Location(request.getEnd().getLat(), request.getEnd().getLon())      // Varış noktası
+                        new Location(request.getStart().getLat(), request.getStart().getLon()),
+                        new Location(request.getEnd().getLat(), request.getEnd().getLon())
                 ),
                 taksiUcreti,
                 taksiSuresi,
                 0
         );
 
-
-
-        // Eğer hiçbir toplu taşıma rotası bulunamazsa, sadece taksi rotasını döndür
-        if (enUcuz.isEmpty() || enKisa.isEmpty() || enAzAktarma.isEmpty()) {
-            return new RouteResponse(List.of(taksiAlternatif));
-        }
-
-        // Alternatif rotaları döndür
         return new RouteResponse(
                 List.of(
-                        taksiAlternatif, // Taksi rotası olduğu gibi kalabilir çünkü tek çizgi halinde zaten
-                        new RouteDetail("En Ucuz Rota", enUcuz,
-                                getCoordinatesFromPath(graph, enUcuz), // sadece bu satır eklendi
-                                calculateTotalCost(graph, enUcuz, yolcu),
-                                calculateTotalTime(graph, enUcuz),
-                                calculateTotalTransfers(graph, enUcuz)),
-
-                        new RouteDetail("En Kısa Rota", enKisa,
-                                getCoordinatesFromPath(graph, enKisa), // sadece bu satır eklendi
-                                calculateTotalCost(graph, enKisa, yolcu),
-                                calculateTotalTime(graph, enKisa),
-                                calculateTotalTransfers(graph, enKisa)),
-
-                        new RouteDetail("En Az Aktarma", enAzAktarma,
-                                getCoordinatesFromPath(graph, enAzAktarma), // sadece bu satır eklendi
-                                calculateTotalCost(graph, enAzAktarma, yolcu),
-                                calculateTotalTime(graph, enAzAktarma),
-                                calculateTotalTransfers(graph, enAzAktarma))
-                )
+                        taksiAlternatif,
+                        new RouteDetail("En Ucuz Rota", enUcuz, getCoordinatesFromPath(graph, enUcuz), calculateTotalCost(graph, enUcuz, yolcu), calculateTotalTime(graph, enUcuz), calculateTotalTransfers(graph, enUcuz)),
+                        new RouteDetail("En Kısa Rota", enKisa, getCoordinatesFromPath(graph, enKisa), calculateTotalCost(graph, enKisa, yolcu), calculateTotalTime(graph, enKisa), calculateTotalTransfers(graph, enKisa)),
+                        new RouteDetail("En Az Aktarma", enAzAktarma, getCoordinatesFromPath(graph, enAzAktarma), calculateTotalCost(graph, enAzAktarma, yolcu), calculateTotalTime(graph, enAzAktarma), calculateTotalTransfers(graph, enAzAktarma))
+                ),
+                startStop.getName(),
+                startDistance,
+                startMessage,
+                endStop.getName(),
+                endDistance,
+                endMessage
         );
-
     }
+
 
     private List<Location> getCoordinatesFromPath(Graph graph, List<String> path) {
         List<Location> coordinates = new ArrayList<>();

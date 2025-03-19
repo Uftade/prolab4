@@ -11,9 +11,13 @@ const stopIcon = new L.Icon({
     popupAnchor: [0, -20],
 });
 
-const MapComponent = ({ start, end, onSelectLocation, routeCoordinates }) => {
+const MapComponent = ({
+                          start, end, onSelectLocation,
+                          routeCoordinates, nearestStartStop, nearestEndStop
+                      }) => {
     const [clickedPosition, setClickedPosition] = useState(null);
     const [duraklar, setDuraklar] = useState([]);
+
 
     useEffect(() => {
         fetch("/RawData.json")
@@ -64,6 +68,20 @@ const MapComponent = ({ start, end, onSelectLocation, routeCoordinates }) => {
             {routeCoordinates && routeCoordinates.length > 0 && (
                 <Polyline positions={routeCoordinates} pathOptions={{ color: 'black', weight: 5 }} />
             )}
+            {start && nearestStartStop && (
+                <Polyline positions={[
+                    [start.lat, start.lon],
+                    [nearestStartStop.lat, nearestStartStop.lon]
+                ]} pathOptions={{color: 'orange', dashArray: '5, 10'}} />
+            )}
+
+            {end && nearestEndStop && (
+                <Polyline positions={[
+                    [end.lat, end.lon],
+                    [nearestEndStop.lat, nearestEndStop.lon]
+                ]} pathOptions={{color: 'green', dashArray: '5, 10'}} />
+            )}
+
 
 
 

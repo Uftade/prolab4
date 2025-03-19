@@ -12,6 +12,16 @@ export default function RouteFinder() {
     const [isSelectingStart, setIsSelectingStart] = useState(true);
     const [selectedRouteCoords, setSelectedRouteCoords] = useState([]);
 
+    // yeni eklediğiniz stateler de burada olacak:
+    const [nearestStartStopName, setNearestStartStopName] = useState("");
+    const [nearestEndStopName, setNearestEndStopName] = useState("");
+    const [distanceToStartStop, setDistanceToStartStop] = useState(0);
+    const [distanceToEndStop, setDistanceToEndStop] = useState(0);
+    const [startMessage, setStartMessage] = useState("");
+    const [endMessage, setEndMessage] = useState("");
+    const [nearestStartStop, setNearestStartStop] = useState(null);
+    const [nearestEndStop, setNearestEndStop] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -30,6 +40,15 @@ export default function RouteFinder() {
             });
             const data = await response.json();
             setRoutes(data.routes);
+            setNearestStartStopName(data.nearestStartStopName);
+            setDistanceToStartStop(data.distanceToStartStop);
+            setStartMessage(data.startMessage);
+            setNearestEndStopName(data.nearestEndStopName);
+            setDistanceToEndStop(data.distanceToEndStop);
+            setEndMessage(data.endMessage);
+
+            setNearestStartStop(data.routes[1].coordinates[0]);
+            setNearestEndStop(data.routes[1].coordinates[data.routes[1].coordinates.length - 1]);
         } catch (error) {
             console.error("Hata:", error);
         }
@@ -82,7 +101,17 @@ export default function RouteFinder() {
                 end={{ lat: endLat, lon: endLon }}
                 onSelectLocation={onMapClick}
                 routeCoordinates={selectedRouteCoords}
+                nearestStartStop={nearestStartStop}
+                nearestEndStop={nearestEndStop}
             />
+
+            <div>
+                <p><strong>Başlangıç için en yakın durak:</strong> {nearestStartStopName} ({distanceToStartStop.toFixed(2)} km)</p>
+                <p>{startMessage}</p>
+
+                <p><strong>Hedef için en yakın durak:</strong> {nearestEndStopName} ({distanceToEndStop.toFixed(2)} km)</p>
+                <p>{endMessage}</p>
+            </div>
 
             <h3>Alternatif Rotalar</h3>
             {routes.length > 0 ? (
@@ -90,15 +119,13 @@ export default function RouteFinder() {
                     {routes.map((route, index) => (
                         <li
                             key={index}
-                            style={{cursor: "pointer"}}
+                            style={{ cursor: "pointer" }}
                             onClick={() => {
                                 if (route.coordinates && route.coordinates.length > 0) {
-                                    const coords = route.coordinates.map(coord => [parseFloat(coord.lat), parseFloat(coord.lon)]);
+                                    const coords = route.coordinates.map(coord => [coord.lat, coord.lon]);
                                     setSelectedRouteCoords(coords);
-                                    console.log("Koordinatlar:", coords);
                                 } else {
                                     setSelectedRouteCoords([]);
-                                    console.log("Koordinatlar boş!");
                                 }
                             }}
                         >
@@ -107,7 +134,6 @@ export default function RouteFinder() {
                         </li>
                     ))}
                 </ul>
-
             ) : (
                 <p>Henüz bir rota hesaplanmadı.</p>
             )}

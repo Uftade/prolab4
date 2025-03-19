@@ -43,7 +43,7 @@ public class Prolab43Application {
         scanner.close();
 
         // 4) JSON dosyasını okuyup, grafı oluşturuyoruz
-        TransportData data = JsonLoader.load("C:\\Users\\murat2\\java_projeler\\prolab4_3\\src\\main\\resources\\RawData.json");
+        TransportData data = JsonLoader.load("C:\\Users\\Dell-Pc\\OneDrive\\Masaüstü\\Web\\prolab_ortak\\src\\main\\resources\\RawData.json");
         Graph graph = Graph.fromTransportData(data);
 
         // 5) Girilen koordinatlara en yakın durakları Haversine formülü ile buluyoruz

@@ -27,7 +27,7 @@ public class RouteController {
     private final Graph graph;
 
     public RouteController() {
-        TransportData data = JsonLoader.load("C:\\Users\\murat2\\java_projeler\\prolab4_3\\src\\main\\resources\\RawData.json");
+        TransportData data = JsonLoader.load("C:\\Users\\Dell-Pc\\OneDrive\\Masaüstü\\Web\\prolab_ortak\\src\\main\\resources\\RawData.json");
         this.graph = Graph.fromTransportData(data);
     }
 
@@ -139,7 +139,7 @@ public class RouteController {
                 if (yolcu instanceof Ogrenci) {
                     cost *= (1 - ((Ogrenci) yolcu).indirimOrani());
                 } else if (yolcu instanceof Yasli) {
-                    cost = 0.0;
+                    cost *= (1 - ((Yasli) yolcu).indirimOrani());
                 }
                 totalCost += cost;
             }

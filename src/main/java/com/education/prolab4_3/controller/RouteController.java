@@ -2,6 +2,7 @@ package com.education.prolab4_3.controller;
 
 import com.education.prolab4_3.*;
 import com.education.prolab4_3.araclar.Taksi;
+import com.education.prolab4_3.request.Location;
 import com.education.prolab4_3.request.RouteRequest;
 import com.education.prolab4_3.responce.RouteDetail;
 import com.education.prolab4_3.responce.RouteResponse;
@@ -13,6 +14,9 @@ import com.education.prolab4_3.odemeYontemleri.KrediKart;
 import com.education.prolab4_3.odemeYontemleri.Nakit;
 
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -63,10 +67,16 @@ public class RouteController {
         RouteDetail taksiAlternatif = new RouteDetail(
                 "En Hızlı Rota (Taksi)",
                 List.of("Başlangıç", "Taksi ile Varış"),
+                List.of(
+                        new Location(request.getStart().getLat(), request.getStart().getLon()), // Başlangıç noktası
+                        new Location(request.getEnd().getLat(), request.getEnd().getLon())      // Varış noktası
+                ),
                 taksiUcreti,
                 taksiSuresi,
                 0
         );
+
+
 
         // Eğer hiçbir toplu taşıma rotası bulunamazsa, sadece taksi rotasını döndür
         if (enUcuz.isEmpty() || enKisa.isEmpty() || enAzAktarma.isEmpty()) {
@@ -76,25 +86,37 @@ public class RouteController {
         // Alternatif rotaları döndür
         return new RouteResponse(
                 List.of(
-                        taksiAlternatif,
+                        taksiAlternatif, // Taksi rotası olduğu gibi kalabilir çünkü tek çizgi halinde zaten
                         new RouteDetail("En Ucuz Rota", enUcuz,
+                                getCoordinatesFromPath(graph, enUcuz), // sadece bu satır eklendi
                                 calculateTotalCost(graph, enUcuz, yolcu),
                                 calculateTotalTime(graph, enUcuz),
                                 calculateTotalTransfers(graph, enUcuz)),
 
                         new RouteDetail("En Kısa Rota", enKisa,
+                                getCoordinatesFromPath(graph, enKisa), // sadece bu satır eklendi
                                 calculateTotalCost(graph, enKisa, yolcu),
                                 calculateTotalTime(graph, enKisa),
                                 calculateTotalTransfers(graph, enKisa)),
 
                         new RouteDetail("En Az Aktarma", enAzAktarma,
+                                getCoordinatesFromPath(graph, enAzAktarma), // sadece bu satır eklendi
                                 calculateTotalCost(graph, enAzAktarma, yolcu),
                                 calculateTotalTime(graph, enAzAktarma),
                                 calculateTotalTransfers(graph, enAzAktarma))
                 )
         );
+
     }
 
+    private List<Location> getCoordinatesFromPath(Graph graph, List<String> path) {
+        List<Location> coordinates = new ArrayList<>();
+        for (String stopId : path) {
+            Stop stop = graph.getStop(stopId);
+            coordinates.add(new Location(stop.getLat(), stop.getLon()));
+        }
+        return coordinates;
+    }
 
     private Stop findNearestStop(Graph graph, double lat, double lon) {
         Stop nearest = null;

@@ -1,5 +1,6 @@
 package com.education.prolab4_3.responce;
 
+import com.education.prolab4_3.request.Location;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
@@ -10,6 +11,9 @@ public class RouteDetail {
     @JsonProperty("path")
     private List<String> path;
 
+    @JsonProperty("coordinates") // Eklenen kısım
+    private List<Location> coordinates;
+
     @JsonProperty("fare")
     private double fare;
 
@@ -19,17 +23,16 @@ public class RouteDetail {
     @JsonProperty("transfers")
     private int transfers;
 
-    public RouteDetail(String type, List<String> path, double fare, int duration, int transfers) {
+    // Constructor'a sadece koordinat ekle, diğerlerini elleme
+    public RouteDetail(String type, List<String> path, List<Location> coordinates, double fare, int duration, int transfers) {
         this.type = type;
         this.path = path;
+        this.coordinates = coordinates;
         this.fare = fare;
         this.duration = duration;
         this.transfers = transfers;
     }
 
-    public String getType() { return type; }
-    public List<String> getPath() { return path; }
-    public double getFare() { return fare; }
-    public int getDuration() { return duration; }
-    public int getTransfers() { return transfers; }
+    // Mevcut getter'lar kalacak şekilde ekleme:
+    public List<Location> getCoordinates() { return coordinates; }
 }

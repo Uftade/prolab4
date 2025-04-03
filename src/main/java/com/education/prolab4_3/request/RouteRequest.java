@@ -6,6 +6,9 @@ public class RouteRequest {
     private Location start;
     private Location end;
 
+
+
+
     // Getter'lar
     public String getPassengerType() {
         return passengerType;

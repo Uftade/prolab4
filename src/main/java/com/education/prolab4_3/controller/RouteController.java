@@ -137,6 +137,9 @@ public class RouteController {
         return EARTH_RADIUS * c;
     }
 
+
+
+
     private static double calculateTotalCost(Graph graph, List<String> path, Yolcu yolcu) {
         double totalCost = 0.0;
 

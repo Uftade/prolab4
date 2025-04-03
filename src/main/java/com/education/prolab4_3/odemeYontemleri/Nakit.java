@@ -6,6 +6,8 @@ public class Nakit implements OdemeYontemi {
         return false;
     }
 
+
+
     @Override
     public double ucretCarpani() {
         return 1.2; // Nakit ile ödeme %20 fazla

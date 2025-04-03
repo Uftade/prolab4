@@ -6,6 +6,8 @@ public class KrediKart implements OdemeYontemi {
         return false;
     }
 
+
+
     @Override
     public double ucretCarpani() {
         return 1.5; // Kredi Kartı ile ödeme %50 fazla

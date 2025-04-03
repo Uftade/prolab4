@@ -6,6 +6,9 @@ public class KentKart implements OdemeYontemi {
         return true;
     }
 
+
+
+
     @Override
     public double ucretCarpani() {
         return 1.0; // KentKart için ücret değişmiyor

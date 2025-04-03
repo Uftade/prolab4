@@ -16,6 +16,8 @@ public class Ogrenci extends Yolcu implements IndirimliBilet {
     }
 
 
+
+
     @Override
     public double indirimOrani() {
         return 0.5; // %50 indirim

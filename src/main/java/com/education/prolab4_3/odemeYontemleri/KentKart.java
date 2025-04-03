@@ -5,4 +5,10 @@ public class KentKart implements OdemeYontemi {
     public boolean indirimUygulanabilirMi() {
         return true;
     }
+
+    @Override
+    public double ucretCarpani() {
+        return 1.0; // KentKart için ücret değişmiyor
+    }
 }
+

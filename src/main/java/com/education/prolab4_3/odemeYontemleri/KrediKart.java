@@ -5,4 +5,11 @@ public class KrediKart implements OdemeYontemi {
     public boolean indirimUygulanabilirMi() {
         return false;
     }
+
+
+
+    @Override
+    public double ucretCarpani() {
+        return 1.5; // Kredi Kartı ile ödeme %50 fazla
+    }
 }

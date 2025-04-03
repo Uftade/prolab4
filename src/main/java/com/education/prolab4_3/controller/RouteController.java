@@ -6,22 +6,20 @@ import com.education.prolab4_3.request.Location;
 import com.education.prolab4_3.request.RouteRequest;
 import com.education.prolab4_3.responce.RouteDetail;
 import com.education.prolab4_3.responce.RouteResponse;
-import com.education.prolab4_3.yolcuTipi.Ogrenci;
-import com.education.prolab4_3.yolcuTipi.Yasli;
-import com.education.prolab4_3.yolcuTipi.Yetiskin;
-import com.education.prolab4_3.yolcuTipi.Yolcu;
+import com.education.prolab4_3.yolcuTipi.*;
+import com.education.prolab4_3.odemeYontemleri.KentKart;
 import com.education.prolab4_3.odemeYontemleri.KrediKart;
 import com.education.prolab4_3.odemeYontemleri.Nakit;
+import com.education.prolab4_3.odemeYontemleri.OdemeYontemi;
 
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/routes")
-@CrossOrigin(origins = "http://localhost:3000") // React ile çalışabilmesi için CORS izni
+@CrossOrigin(origins = "http://localhost:3000")
 public class RouteController {
 
     private final Graph graph;
@@ -40,8 +38,12 @@ public class RouteController {
             default -> yolcu = new Yetiskin();
         }
 
-        if (!(yolcu.getOdemeYontemi() instanceof Nakit || yolcu.getOdemeYontemi() instanceof KrediKart)) {
-            yolcu.setOdemeYontemi(new Nakit());
+        // Ödeme yöntemi belirle
+        switch (request.getPaymentMethod().toLowerCase()) {
+            case "kentkart" -> yolcu.setOdemeYontemi(new KentKart());
+            case "kredikart" -> yolcu.setOdemeYontemi(new KrediKart());
+            case "nakit" -> yolcu.setOdemeYontemi(new Nakit());
+            default -> yolcu.setOdemeYontemi(new Nakit());
         }
 
         Stop startStop = findNearestStop(graph, request.getStart().getLat(), request.getStart().getLon());
@@ -64,8 +66,14 @@ public class RouteController {
 
         double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(), request.getEnd().getLat(), request.getEnd().getLon());
 
+        // Taksi için: KentKart ise taksi yolcusu olarak Nakit gibi davran
+        Yolcu taksiYolcusu = yolcu;
+        if (yolcu.getOdemeYontemi() instanceof KentKart) {
+            taksiYolcusu = cloneYolcuWithOdemeYontemi(yolcu, new Nakit());
+        }
+
         Taksi taksi = new Taksi();
-        double taksiUcreti = taksi.fiyatHesapla(taksi.getOpeningFee() + (taksi.getCostPerKm() * mesafe), yolcu);
+        double taksiUcreti = taksi.fiyatHesapla(taksi.getOpeningFee() + (taksi.getCostPerKm() * mesafe), taksiYolcusu);
         int taksiSuresi = (int) (mesafe * 2);
 
         RouteDetail taksiAlternatif = new RouteDetail(
@@ -95,7 +103,6 @@ public class RouteController {
                 endMessage
         );
     }
-
 
     private List<Location> getCoordinatesFromPath(Graph graph, List<String> path) {
         List<Location> coordinates = new ArrayList<>();
@@ -130,20 +137,30 @@ public class RouteController {
         return EARTH_RADIUS * c;
     }
 
+
+
+
     private static double calculateTotalCost(Graph graph, List<String> path, Yolcu yolcu) {
         double totalCost = 0.0;
+
         for (int i = 0; i < path.size() - 1; i++) {
             NextStop edge = graph.getEdge(path.get(i), path.get(i + 1));
             if (edge != null) {
                 double cost = edge.getUcret();
-                if (yolcu instanceof Ogrenci) {
-                    cost *= (1 - ((Ogrenci) yolcu).indirimOrani());
-                } else if (yolcu instanceof Yasli) {
-                    cost *= (1 - ((Yasli) yolcu).indirimOrani());
+
+                if (yolcu.getOdemeYontemi() != null) {
+                    cost *= yolcu.getOdemeYontemi().ucretCarpani();
+
+                    if (yolcu.getOdemeYontemi().indirimUygulanabilirMi() && yolcu instanceof IndirimliBilet) {
+                        IndirimliBilet ib = (IndirimliBilet) yolcu;
+                        cost *= (1 - ib.indirimOrani());
+                    }
                 }
+
                 totalCost += cost;
             }
         }
+
         return totalCost;
     }
 
@@ -160,5 +177,21 @@ public class RouteController {
 
     private static int calculateTotalTransfers(Graph graph, List<String> path) {
         return path.size() - 1;
+    }
+
+    // Yolcu nesnesini kopyalayıp yeni ödeme yöntemiyle döndür
+    private Yolcu cloneYolcuWithOdemeYontemi(Yolcu yolcu, OdemeYontemi yeniYontem) {
+        Yolcu yeniYolcu;
+
+        if (yolcu instanceof Ogrenci) {
+            yeniYolcu = new Ogrenci();
+        } else if (yolcu instanceof Yasli) {
+            yeniYolcu = new Yasli();
+        } else {
+            yeniYolcu = new Yetiskin();
+        }
+
+        yeniYolcu.setOdemeYontemi(yeniYontem);
+        return yeniYolcu;
     }
 }

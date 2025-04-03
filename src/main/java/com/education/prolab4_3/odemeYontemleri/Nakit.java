@@ -5,4 +5,11 @@ public class Nakit implements OdemeYontemi {
     public boolean indirimUygulanabilirMi() {
         return false;
     }
+
+
+
+    @Override
+    public double ucretCarpani() {
+        return 1.2; // Nakit ile ödeme %20 fazla
+    }
 }

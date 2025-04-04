@@ -9,7 +9,6 @@ public class RouteRequest {
 
 
 
-    // Getter'lar
     public String getPassengerType() {
         return passengerType;
     }
@@ -26,7 +25,6 @@ public class RouteRequest {
         return end;
     }
 
-    // Setter'lar
     public void setPassengerType(String passengerType) {
         this.passengerType = passengerType;
     }

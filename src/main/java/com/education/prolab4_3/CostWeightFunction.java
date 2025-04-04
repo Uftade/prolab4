@@ -7,7 +7,6 @@ import com.education.prolab4_3.yolcuTipi.Yolcu;
 public class CostWeightFunction implements WeightFunction {
     @Override
     public double getWeight(Stop currentStop, NextStop edge, Stop nextStop, Yolcu yolcu) {
-        // Yolcu tipine göre, eğer Ogrenci/Yasli ise indirim uygula:
         double rawCost = edge.getUcret();
         if (yolcu instanceof Ogrenci) {
             return rawCost * 0.5;

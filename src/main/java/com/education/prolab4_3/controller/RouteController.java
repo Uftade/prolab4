@@ -25,7 +25,7 @@ public class RouteController {
     private final Graph graph;
 
     public RouteController() {
-        TransportData data = JsonLoader.load("C:\\Users\\Dell-Pc\\OneDrive\\Masaüstü\\Web\\prolab_ortak\\src\\main\\resources\\RawData.json");
+        TransportData data = JsonLoader.load("C:\\Users\\murat2\\java_projeler\\prolab4_3\\src\\main\\resources\\RawData.json");
         this.graph = Graph.fromTransportData(data);
     }
 
@@ -38,7 +38,6 @@ public class RouteController {
             default -> yolcu = new Yetiskin();
         }
 
-        // Ödeme yöntemi belirle
         switch (request.getPaymentMethod().toLowerCase()) {
             case "kentkart" -> yolcu.setOdemeYontemi(new KentKart());
             case "kredikart" -> yolcu.setOdemeYontemi(new KrediKart());
@@ -66,7 +65,6 @@ public class RouteController {
 
         double mesafe = haversineDistance(request.getStart().getLat(), request.getStart().getLon(), request.getEnd().getLat(), request.getEnd().getLon());
 
-        // Taksi için: KentKart ise taksi yolcusu olarak Nakit gibi davran
         Yolcu taksiYolcusu = yolcu;
         if (yolcu.getOdemeYontemi() instanceof KentKart) {
             taksiYolcusu = cloneYolcuWithOdemeYontemi(yolcu, new Nakit());
@@ -179,7 +177,6 @@ public class RouteController {
         return path.size() - 1;
     }
 
-    // Yolcu nesnesini kopyalayıp yeni ödeme yöntemiyle döndür
     private Yolcu cloneYolcuWithOdemeYontemi(Yolcu yolcu, OdemeYontemi yeniYontem) {
         Yolcu yeniYolcu;
 

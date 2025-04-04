@@ -3,9 +3,7 @@ package com.education.prolab4_3;
 import java.util.*;
 
 public class Graph {
-    // Durağın kimliğinden Stop nesnesine
     private Map<String, Stop> stops = new HashMap<>();
-    // Hangi duraktan hangi duraklara hangi edge verisiyle gidilebiliyor?
     private Map<String, List<NextStop>> adjacency = new HashMap<>();
 
     public void addStop(Stop stop) {
@@ -25,16 +23,13 @@ public class Graph {
         return stops;
     }
 
-    // JSON verisinden Graph oluşturma
     public static Graph fromTransportData(TransportData data) {
         Graph g = new Graph();
 
-        // 1) Tüm durakları ekle
         for (Stop s : data.getDuraklar()) {
             g.addStop(s);
         }
 
-        // 2) Kenarları oluştur
         for (Stop s : data.getDuraklar()) {
             if (s.getNextStops() != null) {
                 for (NextStop ns : s.getNextStops()) {
@@ -78,6 +73,5 @@ public class Graph {
         }
         return null;
     }
-
 }
 

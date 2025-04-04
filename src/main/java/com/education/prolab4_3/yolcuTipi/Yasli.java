@@ -18,6 +18,6 @@ public class Yasli extends Yolcu implements IndirimliBilet {
 
     @Override
     public double indirimOrani() {
-        return 1.0; // %100 indirim, yani ücret 0 TL
+        return 1.0;
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 public class Stop {
     private String id;
     private String name;
-    private String type;    // "bus" veya "tram"
+    private String type;
     private double lat;
     private double lon;
     private boolean sonDurak;

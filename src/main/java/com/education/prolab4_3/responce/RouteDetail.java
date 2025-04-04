@@ -23,7 +23,6 @@ public class RouteDetail {
     @JsonProperty("transfers")
     private int transfers;
 
-    // Constructor'a sadece koordinat ekle, diğerlerini elleme
     public RouteDetail(String type, List<String> path, List<Location> coordinates, double fare, int duration, int transfers) {
         this.type = type;
         this.path = path;
@@ -33,6 +32,5 @@ public class RouteDetail {
         this.transfers = transfers;
     }
 
-    // Mevcut getter'lar kalacak şekilde ekleme:
     public List<Location> getCoordinates() { return coordinates; }
 }

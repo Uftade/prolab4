@@ -7,18 +7,15 @@ import java.util.*;
 public class Dijkstra {
     public static List<String> findPath(Graph graph, String startId, String goalId,
                                         WeightFunction wf, Yolcu yolcu) {
-        // Mesafe tabloları
         Map<String, Double> dist = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
 
-        // Başlangıçta tüm mesafeleri sonsuz olarak ayarla
         for (String sid : graph.getStops().keySet()) {
             dist.put(sid, Double.POSITIVE_INFINITY);
             prev.put(sid, null);
         }
         dist.put(startId, 0.0);
 
-        // Öncelik kuyruğu
         PriorityQueue<String> pq = new PriorityQueue<>((a, b) -> dist.get(a).compareTo(dist.get(b)));
         pq.add(startId);
 
@@ -37,21 +34,19 @@ public class Dijkstra {
                 if (alt < dist.get(edge.getStopId())) {
                     dist.put(edge.getStopId(), alt);
                     prev.put(edge.getStopId(), current);
-                    pq.remove(edge.getStopId()); // güncellemek için remove+add
+                    pq.remove(edge.getStopId());
                     pq.add(edge.getStopId());
                 }
             }
         }
-        // Rota oluşturma
         List<String> path = new ArrayList<>();
         String node = goalId;
         while (node != null) {
             path.add(0, node);
             node = prev.get(node);
         }
-        // Eğer başlangıç'a hiç ulaşamadıysak
         if (!path.isEmpty() && !path.get(0).equals(startId)) {
-            return Collections.emptyList(); // geçerli rota yok
+            return Collections.emptyList();
         }
         return path;
     }
